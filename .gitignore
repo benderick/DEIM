@@ -142,3 +142,4 @@ data/
 outputs/
 .vscode/
 DEIM_paper/
+tmp/
