@@ -1,11 +1,11 @@
-#!/bin/zsh
+#!/bin/bash
 
 # CODrone水平框目标检测训练脚本
 
 set -e
 
 cd ~/futurama/DEIM
-eval "$(conda shell.zsh hook)"
+eval "$(conda shell.zsh hook)" || eval "$(conda shell.bash hook)"
 conda activate deim
 
 # 优化多线程性能（避免系统过载）

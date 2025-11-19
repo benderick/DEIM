@@ -11,8 +11,8 @@ train_dataloader:
   type: DataLoader
   dataset:
     type: CocoDetection
-    img_folder: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/train/images
-    ann_file: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/train/annotations/instances_default.json
+    img_folder: data/CODrone/train/images
+    ann_file: data/CODrone/train/annotations/instances_default.json
     return_masks: False
     transforms:
       type: Compose
@@ -28,8 +28,8 @@ val_dataloader:
   type: DataLoader
   dataset:
     type: CocoDetection
-    img_folder: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/val/images
-    ann_file: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/val/annotations/instances_default.json
+    img_folder: data/CODrone/val/images
+    ann_file: data/CODrone/val/annotations/instances_default.json
     return_masks: False
     transforms:
       type: Compose
