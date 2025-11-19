@@ -1,9 +1,9 @@
 __include__: [
-  './dfine_hgnetv2_n_coco.yml',
+  './dfine.yml',
   '../base/deim.yml'
 ]
 
-output_dir: ./deim_outputs/deim_hgnetv2_n_coco
+output_dir: ./outputs/deim
 
 optimizer:
   type: AdamW

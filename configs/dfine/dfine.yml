@@ -1,12 +1,12 @@
 __include__: [
-  '../dataset/coco_detection.yml',
+  '../dataset/codrone_detection.yml',
   '../runtime.yml',
   '../base/dataloader.yml',
   '../base/optimizer.yml',
   '../base/dfine_hgnetv2.yml',
 ]
 
-output_dir: ./output/dfine_hgnetv2_n_coco
+output_dir: ./outputs/dfine
 
 
 DEIM:
@@ -18,6 +18,7 @@ HGNetv2:
   freeze_at: -1
   freeze_norm: False
   use_lab: True
+  pretrained: False
 
 
 HybridEncoder:
@@ -68,7 +69,7 @@ optimizer:
 # Increase to search for the optimal ema
 epoches: 160 # 148 + 4n
 train_dataloader:
-  total_batch_size: 128
+  total_batch_size: 64
   dataset:
     transforms:
       policy:
@@ -79,4 +80,4 @@ train_dataloader:
     base_size_repeat: ~
 
 val_dataloader:
-  total_batch_size: 256
+  total_batch_size: 64

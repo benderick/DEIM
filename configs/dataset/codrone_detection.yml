@@ -4,15 +4,15 @@ evaluator:
   type: CocoEvaluator
   iou_types: ['bbox', ]
 
-num_classes: 80
-remap_mscoco_category: True
+num_classes: 12
+remap_mscoco_category: False
 
 train_dataloader:
   type: DataLoader
   dataset:
     type: CocoDetection
-    img_folder: /datassd/COCO/train2017/
-    ann_file: /datassd/COCO/annotations/instances_train2017.json
+    img_folder: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/train/images
+    ann_file: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/train/annotations/instances_default.json
     return_masks: False
     transforms:
       type: Compose
@@ -28,8 +28,8 @@ val_dataloader:
   type: DataLoader
   dataset:
     type: CocoDetection
-    img_folder: /datassd/COCO/val2017/
-    ann_file: /datassd/COCO/annotations/instances_val2017.json
+    img_folder: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/val/images
+    ann_file: /icislab/volume3/benderick/futurama/DEIM/data/CODrone/val/annotations/instances_default.json
     return_masks: False
     transforms:
       type: Compose

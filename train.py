@@ -15,6 +15,7 @@ import argparse
 from engine.misc import dist_utils
 from engine.core import YAMLConfig, yaml_utils
 from engine.solver import TASKS
+from rich import print
 
 debug=False
 
@@ -44,7 +45,7 @@ def main(args, ) -> None:
         if 'HGNetv2' in cfg.yaml_cfg:
             cfg.yaml_cfg['HGNetv2']['pretrained'] = False
 
-    print('cfg: ', cfg.__dict__)
+    print(cfg.__dict__)
 
     solver = TASKS[cfg.yaml_cfg['task']](cfg)
 
