@@ -155,6 +155,14 @@ class BatchImageCollateFunction(BaseCollateFunction):
                 updated_targets[i]['labels'] = torch.cat([targets[i]['labels'], shifted_targets[i]['labels']], dim=0)
                 updated_targets[i]['area'] = torch.cat([targets[i]['area'], shifted_targets[i]['area']], dim=0)
 
+                # --- META-GUIDED MODIFICATION START ---
+                # 混合实例级元数据张量 (Mixup Instance-level Meta Tensors)
+                # 确保元数据跟随目标一起被拼接
+                for meta_key in ['gt_altitude', 'gt_time', 'gt_angle']:
+                    if meta_key in targets[i]:
+                        updated_targets[i][meta_key] = torch.cat([targets[i][meta_key], shifted_targets[i][meta_key]], dim=0)
+                # --- META-GUIDED MODIFICATION END ---
+
                 # Add mixup ratio to targets
                 updated_targets[i]['mixup'] = torch.tensor(
                     [beta] * len(targets[i]['labels']) + [1.0 - beta] * len(shifted_targets[i]['labels']), 

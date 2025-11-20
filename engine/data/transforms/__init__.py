@@ -20,3 +20,5 @@ from ._transforms import (
 )
 from .container import Compose
 from .mosaic import Mosaic
+from .meta_mosaic import MetaMosaic
+from .meta_transforms import MetaSanitizeBoundingBoxes
