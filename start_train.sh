@@ -13,9 +13,9 @@ export OMP_NUM_THREADS=4
 export MKL_NUM_THREADS=4
 
 # GPU配置
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=2,3
 NUM_GPUS=2
 
-torchrun --master_port=9928 --nproc_per_node=$NUM_GPUS train.py -c configs/dfine/dfine.yml
+torchrun --master_port=9928 --nproc_per_node=$NUM_GPUS train.py -c configs/dfine/meta.yml
 
 echo "✅ Training completed!"

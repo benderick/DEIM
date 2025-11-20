@@ -10,7 +10,7 @@ remap_mscoco_category: False
 train_dataloader:
   type: DataLoader
   dataset:
-    type: CocoDetection
+    type: CODroneDetection
     img_folder: data/CODrone/train/images
     ann_file: data/CODrone/train/annotations/instances_default.json
     return_masks: False
@@ -27,7 +27,7 @@ train_dataloader:
 val_dataloader:
   type: DataLoader
   dataset:
-    type: CocoDetection
+    type: CODroneDetection
     img_folder: data/CODrone/val/images
     ann_file: data/CODrone/val/annotations/instances_default.json
     return_masks: False
