@@ -96,27 +96,27 @@ class CODroneDetection(CocoDetection):
         meta_info = parse_meta_from_filename(file_name)
         
         # --- META-GUIDED MODIFICATION START ---
-        # 将 meta_info 转换为 Instance-level 的 Tensor
+        # 将 meta_info 转换为 Box级元信息 Tensor
         # 这样在 Mosaic/Mixup 时，这些 Tensor 会跟随 boxes 一起被拼接
         num_boxes = len(target['boxes'])
         
-        # Altitude (30, 60, 100) -> Tensor
+        # Altitude (30, 60, 100) -> Tensor[N]
         alt = meta_info.get('altitude', 30)
         if alt is None: alt = 30
-        target['gt_altitude'] = torch.full((num_boxes,), alt, dtype=torch.float32)
+        target['meta_altitude'] = torch.full((num_boxes,), float(alt), dtype=torch.float32)
         
-        # Time (day=0, night=1) -> Tensor
+        # Time (day=0, night=1) -> Tensor[N]
         time_val = meta_info.get('time', 'day')
         time_idx = 1.0 if time_val == 'night' else 0.0
-        target['gt_time'] = torch.full((num_boxes,), time_idx, dtype=torch.float32)
+        target['meta_time'] = torch.full((num_boxes,), time_idx, dtype=torch.float32)
         
-        # Angle (90, 30) -> Tensor
+        # Angle (90, 30) -> Tensor[N]
         angle = meta_info.get('angle', 90)
         if angle is None: angle = 90
-        target['gt_angle'] = torch.full((num_boxes,), angle, dtype=torch.float32)
+        target['meta_angle'] = torch.full((num_boxes,), float(angle), dtype=torch.float32)
         
-        # 保留原始 meta_info 用于调试或非增强场景
-        # target['meta_info'] = meta_info
+        # Image级元信息
+        target['meta_consistency_score'] = torch.tensor(1.0, dtype=torch.float32)  # 完美一致性（标量Tensor）
         # --- META-GUIDED MODIFICATION END ---
 
         target['idx'] = torch.tensor([idx])

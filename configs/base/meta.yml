@@ -8,10 +8,10 @@ train_dataloader:
         - {type: RandomPhotometricDistort, p: 0.5}
         - {type: RandomZoomOut, fill: 0}
         - {type: RandomIoUCrop, p: 0.8}
-        - {type: MetaSanitizeBoundingBoxes, min_size: 1, custom_fields: ['gt_altitude', 'gt_time', 'gt_angle']}
+        - {type: MetaSanitizeBoundingBoxes, min_size: 1, custom_fields: ['meta_altitude', 'meta_time', 'meta_angle']}
         - {type: RandomHorizontalFlip}
         - {type: Resize, size: [640, 640], }
-        - {type: MetaSanitizeBoundingBoxes, min_size: 1, custom_fields: ['gt_altitude', 'gt_time', 'gt_angle']}
+        - {type: MetaSanitizeBoundingBoxes, min_size: 1, custom_fields: ['meta_altitude', 'meta_time', 'meta_angle']}
         - {type: ConvertPILImage, dtype: 'float32', scale: True}
         - {type: ConvertBoxes, fmt: 'cxcywh', normalize: True}
       policy:

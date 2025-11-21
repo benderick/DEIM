@@ -22,7 +22,7 @@ from torchvision.transforms.v2 import SanitizeBoundingBoxes
 from engine.data.transforms.meta_transforms import MetaSanitizeBoundingBoxes
 
 # Ensure output directory exists
-os.makedirs("visualization_results", exist_ok=True)
+os.makedirs("tmp/visualization_results", exist_ok=True)
 
 class SimpleCompose:
     def __init__(self, transforms):
@@ -51,7 +51,7 @@ def draw_boxes(image, target, filename):
     
     if 'boxes' not in target or len(target['boxes']) == 0:
         print(f"No boxes to draw for {filename}")
-        image.save(f"visualization_results/{filename}")
+        image.save(f"tmp/visualization_results/{filename}")
         return
 
     boxes = target['boxes']
@@ -73,14 +73,14 @@ def draw_boxes(image, target, filename):
         
         # Text info
         info_text = []
-        if 'gt_altitude' in target:
-            alt = target['gt_altitude'][i].item()
+        if 'meta_altitude' in target:
+            alt = target['meta_altitude'][i].item()
             info_text.append(f"Alt:{alt:.0f}")
-        if 'gt_time' in target:
-            time_val = "Night" if target['gt_time'][i].item() > 0.5 else "Day"
+        if 'meta_time' in target:
+            time_val = "Night" if target['meta_time'][i].item() > 0.5 else "Day"
             info_text.append(f"{time_val}")
-        if 'gt_angle' in target:
-            angle = target['gt_angle'][i].item()
+        if 'meta_angle' in target:
+            angle = target['meta_angle'][i].item()
             info_text.append(f"Ang:{angle:.0f}")
             
         text = ", ".join(info_text)
@@ -88,7 +88,7 @@ def draw_boxes(image, target, filename):
             draw.text((x1, y1), text, fill="yellow")
             # draw.text((x1-1, y1-1), text, fill="black") # Stroke effect
 
-    image.save(f"visualization_results/{filename}")
+    image.save(f"tmp/visualization_results/{filename}")
     print(f"Saved {filename}")
 
 def print_stats(target, prefix=""):
@@ -100,7 +100,7 @@ def print_stats(target, prefix=""):
     num_boxes = len(target['boxes'])
     print(f"  Total Objects: {num_boxes}")
     
-    meta_keys = ['gt_altitude', 'gt_time', 'gt_angle']
+    meta_keys = ['meta_altitude', 'meta_time', 'meta_angle']
     for key in meta_keys:
         if key in target:
             data = target[key]
@@ -127,7 +127,7 @@ def visualize():
     
     mosaic_op = MetaMosaic(
         output_size=640, 
-        rotation_range=10,
+        rotation_range=15,
         translation_range=[0.1, 0.1],
         scaling_range=[0.5, 1.5],
         probability=1.0,
@@ -145,9 +145,9 @@ def visualize():
     #     use_cache=False
     # )
     
-    sanitize_op = MetaSanitizeBoundingBoxes(min_size=1.0, custom_fields=['gt_altitude', 'gt_time', 'gt_angle'])
+    sanitize_op = MetaSanitizeBoundingBoxes(min_size=1.0, custom_fields=['meta_altitude', 'meta_time', 'meta_angle'])
     
-    sanitize_op1 = MetaSanitizeBoundingBoxes(min_size=1.0, custom_fields=['gt_altitude', 'gt_time', 'gt_angle'])
+    sanitize_op1 = MetaSanitizeBoundingBoxes(min_size=1.0, custom_fields=['meta_altitude', 'meta_time', 'meta_angle'])
     
     random_zoom_out_op = RandomZoomOut(fill=0)
     
@@ -164,7 +164,7 @@ def visualize():
     
     
     # Use SimpleCompose to wrap Mosaic
-    transforms = SimpleCompose([mosaic_op, random_photometric_distort, random_zoom_out_op, random_iou_crop_op,sanitize_op, random_horizontal_flip, resize, sanitize_op1])
+    transforms = SimpleCompose([mosaic_op])
     
     dataset_mosaic = CODroneDetection(
         img_folder=img_folder,
@@ -177,12 +177,13 @@ def visualize():
     
     # Pick a random index
     idx = random.randint(0, len(dataset_mosaic) - 1)
+    idx = 0
     print(f"Loading sample index: {idx}")
     
     # This calls __getitem__, which calls transforms (Mosaic)
     img_mosaic, target_mosaic = dataset_mosaic[idx]
-    
-    print("hello")
+    print("****")
+    print('meta_consistency_score', target_mosaic['meta_consistency_score'])
     
     if isinstance(img_mosaic, np.ndarray):
         img_mosaic = Image.fromarray(img_mosaic)
@@ -192,62 +193,65 @@ def visualize():
     draw_boxes(img_mosaic, target_mosaic, "real_mosaic_result.jpg")
     
     
-    # # 2. Visualize Mixup (via Collate Function)
-    # print("\n=== Visualizing Mixup (via Collate Function) ===")
+    # 2. Visualize Mixup (via Collate Function)
+    print("\n=== Visualizing Mixup (via Collate Function) ===")
     
-    # # For Mixup, we need a dataset that returns tensors, but WITHOUT Mosaic (to isolate Mixup effect)
-    # # Or we can use the same dataset if we want Mosaic + Mixup.
-    # # Let's use a clean dataset for Mixup visualization to be clear.
+    # For Mixup, we need a dataset that returns tensors, but WITHOUT Mosaic (to isolate Mixup effect)
+    # Or we can use the same dataset if we want Mosaic + Mixup.
+    # Let's use a clean dataset for Mixup visualization to be clear.
     
-    # class ToTensorTransform:
-    #     def __call__(self, image, target):
-    #         return to_tensor(image), target
+    class ToTensorTransform:
+        def __call__(self, image, target):
+            return to_tensor(image), target
 
-    # transforms_mixup = SimpleCompose([ToTensorTransform()])
+    transforms_mixup = SimpleCompose([mosaic_op, sanitize_op,ToTensorTransform()])
     
-    # dataset_mixup = CODroneDetection(
-    #     img_folder=img_folder,
-    #     ann_file=ann_file,
-    #     transforms=transforms_mixup,
-    #     return_masks=False
-    # )
+    dataset_mixup = CODroneDetection(
+        img_folder=img_folder,
+        ann_file=ann_file,
+        transforms=transforms_mixup,
+        return_masks=False
+    )
     
-    # collate_fn = BatchImageCollateFunction(
-    #     mixup_prob=1.0,
-    #     mixup_epochs=[0, 100],
-    #     base_size=640
-    # )
-    # collate_fn.set_epoch(10)
+    collate_fn = BatchImageCollateFunction(
+        mixup_prob=1.0,
+        mixup_epochs=[0, 100],
+        base_size=640
+    )
+    collate_fn.set_epoch(10)
     
-    # # Pick 2 random images
-    # idx1 = random.randint(0, len(dataset_mixup) - 1)
-    # idx2 = random.randint(0, len(dataset_mixup) - 1)
+    # Pick 2 random images
+    idx1 = random.randint(0, len(dataset_mixup) - 1)
+    idx2 = random.randint(0, len(dataset_mixup) - 1)
     
-    # # We need to manually construct the batch list as DataLoader would
-    # # dataset[i] returns (img_tensor, target)
-    # item1 = dataset_mixup[idx1]
-    # item2 = dataset_mixup[idx2]
+    # We need to manually construct the batch list as DataLoader would
+    # dataset[i] returns (img_tensor, target)
+    item1 = dataset_mixup[idx1]
+    item2 = dataset_mixup[idx2]
     
-    # # Resize manually because BatchImageCollateFunction expects somewhat consistent sizes or handles it?
-    # # Actually, BatchImageCollateFunction handles resizing if base_size is set.
-    # # But we need to make sure 'area' is present and correct if we resized.
-    # # Since we didn't resize in transform, we rely on collate_fn.
+    # Resize manually because BatchImageCollateFunction expects somewhat consistent sizes or handles it?
+    # Actually, BatchImageCollateFunction handles resizing if base_size is set.
+    # But we need to make sure 'area' is present and correct if we resized.
+    # Since we didn't resize in transform, we rely on collate_fn.
     
-    # # However, collate_fn expects a list of (image, target).
-    # batch = [item1, item2]
+    # However, collate_fn expects a list of (image, target).
+    batch = [item1, item2]
     
-    # out_imgs, out_tgts = collate_fn(batch)
+    out_imgs, out_tgts = collate_fn(batch)
     
-    # # Visualize first image (mixed)
-    # mix_img = to_pil_image(out_imgs[0])
-    # mix_tgt = out_tgts[0]
+    # Visualize first image (mixed)
+    mix_img = to_pil_image(out_imgs[0])
+    mix_tgt = out_tgts[0]
     
-    # # Denormalize boxes if needed (Mixup usually keeps them absolute if input is absolute, 
-    # # but let's check if ToTensor normalized them? No, ToTensor only normalizes Image. 
-    # # Boxes in CODroneDetection are converted to TVTensor but not normalized unless we added ConvertBoxes transform)
+    print("****")
+    print('meta_consistency_score', mix_tgt['meta_consistency_score'])
     
-    # print_stats(mix_tgt, prefix="Mixup")
-    # draw_boxes(mix_img, mix_tgt, "real_mixup_result.jpg")
+    # Denormalize boxes if needed (Mixup usually keeps them absolute if input is absolute, 
+    # but let's check if ToTensor normalized them? No, ToTensor only normalizes Image. 
+    # Boxes in CODroneDetection are converted to TVTensor but not normalized unless we added ConvertBoxes transform)
+    
+    print_stats(mix_tgt, prefix="Mixup")
+    draw_boxes(mix_img, mix_tgt, "real_mixup_result.jpg")
     
     print("\nVisualization Complete.")
 

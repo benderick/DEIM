@@ -24,6 +24,8 @@ from copy import deepcopy
 from PIL import Image, ImageDraw
 import os
 
+from .transforms.meta_utils import compute_meta_consistency_score
+
 
 __all__ = [
     'DataLoader',
@@ -156,11 +158,22 @@ class BatchImageCollateFunction(BaseCollateFunction):
                 updated_targets[i]['area'] = torch.cat([targets[i]['area'], shifted_targets[i]['area']], dim=0)
 
                 # --- META-GUIDED MODIFICATION START ---
-                # 混合实例级元数据张量 (Mixup Instance-level Meta Tensors)
-                # 确保元数据跟随目标一起被拼接
-                for meta_key in ['gt_altitude', 'gt_time', 'gt_angle']:
+                # 1. 混合实例级元数据张量 (Mixup Instance-level Meta Tensors)
+                #    拼接两个样本的box级元数据
+                for meta_key in ['meta_altitude', 'meta_time', 'meta_angle']:
                     if meta_key in targets[i]:
-                        updated_targets[i][meta_key] = torch.cat([targets[i][meta_key], shifted_targets[i][meta_key]], dim=0)
+                        updated_targets[i][meta_key] = torch.cat(
+                            [targets[i][meta_key], shifted_targets[i][meta_key]], dim=0
+                        )
+                
+                # 2. 重新计算样本级元数据一致性分数 (Recompute Sample-level Meta Consistency Score)
+                #    基于合并后的元数据计算新的一致性分数
+                if 'meta_altitude' in updated_targets[i]:
+                    updated_targets[i]['meta_consistency_score'] = compute_meta_consistency_score(
+                        updated_targets[i]['meta_altitude'],
+                        updated_targets[i]['meta_time'],
+                        updated_targets[i]['meta_angle']
+                    )
                 # --- META-GUIDED MODIFICATION END ---
 
                 # Add mixup ratio to targets
