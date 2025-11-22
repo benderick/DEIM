@@ -8,6 +8,8 @@ cd ~/futurama/DEIM
 eval "$(conda shell.zsh hook)" || eval "$(conda shell.bash hook)"
 conda activate deim
 
+ulimit -n 65536
+
 # 优化多线程性能（避免系统过载）
 export OMP_NUM_THREADS=4
 export MKL_NUM_THREADS=4

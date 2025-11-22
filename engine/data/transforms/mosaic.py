@@ -103,6 +103,9 @@ class Mosaic(T.Transform):
 
         merged_target = {}
         for key in mosaic_target[0]:
+            if key == 'meta_consistency_score':
+                # Image级元信息，不拼接，稍后重新计算
+                continue
             merged_target[key] = torch.cat([target[key] for target in mosaic_target])
 
         return merged_image, merged_target
@@ -120,6 +123,9 @@ class Mosaic(T.Transform):
         for key in targets[0]:
             if key == 'boxes':
                 values = [target[key] + offsets[i] for i, target in enumerate(targets)]
+            elif key == 'meta_consistency_score':
+                # Image级元信息，不拼接，稍后重新计算
+                continue
             else:
                 values = [target[key] for target in targets]
 
