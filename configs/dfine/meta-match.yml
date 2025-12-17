@@ -3,7 +3,17 @@ __include__: [
   '../base/meta.yml'
 ]
 
-output_dir: ./outputs/meta
+output_dir: ./outputs/meta-match
+
+# Matcher配置：使用元数据引导的匹配
+DEIMCriterion:
+  matcher:
+    type: MetaHungarianMatcher
+    weight_dict: {cost_class: 2.0, cost_bbox: 5.0, cost_giou: 2.0}
+    alpha: 0.25
+    gamma: 2.0
+    use_meta_weighting: True
+    meta_cost_scale: 0.3
 
 optimizer:
   type: AdamW

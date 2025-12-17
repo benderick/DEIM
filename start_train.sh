@@ -18,6 +18,6 @@ export MKL_NUM_THREADS=4
 export CUDA_VISIBLE_DEVICES=2,3
 NUM_GPUS=2
 
-torchrun --master_port=9928 --nproc_per_node=$NUM_GPUS train.py -c configs/dfine/deim.yml
+torchrun --master_port=9928 --nproc_per_node=$NUM_GPUS train.py -c configs/dfine/meta-match.yml
 
 echo "✅ Training completed!"

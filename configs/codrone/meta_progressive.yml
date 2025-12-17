@@ -1,0 +1,70 @@
+# Progressive Meta-Guided Training for CODrone
+# 前20 epoch使用静态难度，20 epoch后切换到动态MLP，25 epoch后解冻MLP
+
+__include__: 
+  - ../base/deim.yml
+  - ../dataset/codrone_detection.yml
+
+num_classes: 4
+epoches: 60
+checkpoint_freq: 10
+
+# Matcher配置：使用元数据引导的匹配
+HungarianMatcher:
+  type: MetaHungarianMatcher
+  cost_class: 2.0
+  cost_bbox: 5.0
+  cost_giou: 2.0
+  alpha: 0.25
+  gamma: 2.0
+  # 元数据加权参数
+  use_meta_weighting: True
+  meta_cost_scale: 0.3  # 困难样本cost降低30%
+
+# Criterion配置：使用渐进式元数据引导的损失
+DEIMCriterion:
+  type: MetaDEIMCriterion
+  matcher: ${HungarianMatcher}
+  weight_dict: 
+    loss_vfl: 1.0
+    loss_bbox: 5.0
+    loss_giou: 2.0
+  losses: ['vfl', 'boxes']
+  alpha: 0.25
+  gamma: 2.0
+  
+  # 元数据加权配置
+  use_meta_weighting: True
+  meta_mode: progressive  # 渐进式训练模式
+  difficulty_scale: 0.5  # 困难样本权重1.5倍
+  use_consistency_weighting: True  # 启用一致性加权
+  consistency_min: 0.7  # 混合图像最低权重0.7
+  
+  # Progressive模式参数
+  progressive_switch_epoch: 20  # 第20 epoch切换到动态模式
+  progressive_freeze_epochs: 5  # 切换后冻结MLP 5个epoch（让detector先适应）
+  
+  # MLP参数（动态模式）
+  mlp_hidden_dims: [128, 64]
+  mlp_dropout: 0.1
+  
+  # 静态难度参数（前20 epoch使用）
+  static_altitude_weight: 0.4
+  static_time_weight: 0.3
+  static_angle_weight: 0.3
+
+# 数据增强配置
+train_transforms:
+  - type: MetaMosaic
+    prob: 1.0
+  - type: RandomHorizontalFlip
+    prob: 0.5
+  - type: MetaSanitizeBoundingBoxes
+    min_size: 1
+
+# MixUp配置
+train_collate_fn:
+  type: MetaMixUp
+  prob: 0.15
+
+output_dir: './outputs/codrone_meta_progressive'

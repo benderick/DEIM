@@ -62,7 +62,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # priority 0
-    parser.add_argument('-c', '--config', type=str, required=True)
+    parser.add_argument('-c', '--config', type=str, required=True, default='configs/dfine/meta-match.yml')
     parser.add_argument('-r', '--resume', type=str, help='resume from checkpoint')
     parser.add_argument('-t', '--tuning', type=str, help='tuning from checkpoint')
     parser.add_argument('-d', '--device', type=str, help='device',)

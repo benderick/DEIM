@@ -1,0 +1,56 @@
+# Dynamic Meta-Guided Training for CODrone  
+# 全程使用动态MLP（端到端学习，精度可能更高但推理稍慢）
+
+__include__: 
+  - ../base/deim.yml
+  - ../dataset/codrone_detection.yml
+
+num_classes: 4
+epoches: 60
+checkpoint_freq: 10
+
+HungarianMatcher:
+  type: MetaHungarianMatcher
+  cost_class: 2.0
+  cost_bbox: 5.0
+  cost_giou: 2.0
+  alpha: 0.25
+  gamma: 2.0
+  use_meta_weighting: True
+  meta_cost_scale: 0.3
+
+DEIMCriterion:
+  type: MetaDEIMCriterion
+  matcher: ${HungarianMatcher}
+  weight_dict: 
+    loss_vfl: 1.0
+    loss_bbox: 5.0
+    loss_giou: 2.0
+  losses: ['vfl', 'boxes']
+  alpha: 0.25
+  gamma: 2.0
+  
+  # 动态模式配置
+  use_meta_weighting: True
+  meta_mode: dynamic  # 全程使用MLP
+  difficulty_scale: 0.5
+  use_consistency_weighting: True
+  consistency_min: 0.7
+  
+  # MLP参数
+  mlp_hidden_dims: [128, 64]
+  mlp_dropout: 0.1
+
+train_transforms:
+  - type: MetaMosaic
+    prob: 1.0
+  - type: RandomHorizontalFlip
+    prob: 0.5
+  - type: MetaSanitizeBoundingBoxes
+    min_size: 1
+
+train_collate_fn:
+  type: MetaMixUp
+  prob: 0.15
+
+output_dir: './outputs/codrone_meta_dynamic'

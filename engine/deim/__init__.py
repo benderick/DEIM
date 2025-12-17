@@ -10,9 +10,11 @@ Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 from .deim import DEIM
 
 from .matcher import HungarianMatcher
+from .meta_matcher import MetaHungarianMatcher
 from .hybrid_encoder import HybridEncoder
 from .dfine_decoder import DFINETransformer
 from .rtdetrv2_decoder import RTDETRTransformerv2
 
 from .postprocessor import PostProcessor
 from .deim_criterion import DEIMCriterion
+from .meta_criterion import MetaDEIMCriterion

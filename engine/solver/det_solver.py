@@ -67,6 +67,10 @@ class DetSolver(BaseSolver):
             # self.train_dataloader.dataset.set_epoch(epoch)
             if dist_utils.is_dist_available_and_initialized():
                 self.train_dataloader.sampler.set_epoch(epoch)
+            
+            # 为criterion设置epoch（用于progressive模式的自动切换）
+            if hasattr(self.criterion, 'set_epoch'):
+                self.criterion.set_epoch(epoch)
 
             if epoch == self.train_dataloader.collate_fn.stop_epoch:
                 self.load_resume_state(str(self.output_dir / 'best_stg1.pth'))

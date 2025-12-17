@@ -1,0 +1,57 @@
+# Static Meta-Guided Training for CODrone
+# 全程使用静态难度评估（基于规则，推理时更快）
+
+__include__: 
+  - ../base/deim.yml
+  - ../dataset/codrone_detection.yml
+
+num_classes: 4
+epoches: 60
+checkpoint_freq: 10
+
+HungarianMatcher:
+  type: MetaHungarianMatcher
+  cost_class: 2.0
+  cost_bbox: 5.0
+  cost_giou: 2.0
+  alpha: 0.25
+  gamma: 2.0
+  use_meta_weighting: True
+  meta_cost_scale: 0.3
+
+DEIMCriterion:
+  type: MetaDEIMCriterion
+  matcher: ${HungarianMatcher}
+  weight_dict: 
+    loss_vfl: 1.0
+    loss_bbox: 5.0
+    loss_giou: 2.0
+  losses: ['vfl', 'boxes']
+  alpha: 0.25
+  gamma: 2.0
+  
+  # 静态模式配置
+  use_meta_weighting: True
+  meta_mode: static  # 全程使用静态规则
+  difficulty_scale: 0.5
+  use_consistency_weighting: True
+  consistency_min: 0.7
+  
+  # 静态难度参数
+  static_altitude_weight: 0.4
+  static_time_weight: 0.3
+  static_angle_weight: 0.3
+
+train_transforms:
+  - type: MetaMosaic
+    prob: 1.0
+  - type: RandomHorizontalFlip
+    prob: 0.5
+  - type: MetaSanitizeBoundingBoxes
+    min_size: 1
+
+train_collate_fn:
+  type: MetaMixUp
+  prob: 0.15
+
+output_dir: './outputs/codrone_meta_static'

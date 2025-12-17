@@ -1,0 +1,47 @@
+# Baseline for CODrone (无元数据引导)
+# 用于消融实验对比
+
+__include__: 
+  - ../base/deim.yml
+  - ../dataset/codrone_detection.yml
+
+num_classes: 4
+epoches: 60
+checkpoint_freq: 10
+
+# 使用原始HungarianMatcher（无元数据）
+HungarianMatcher:
+  type: HungarianMatcher  # 注意：不是Meta版本
+  cost_class: 2.0
+  cost_bbox: 5.0
+  cost_giou: 2.0
+  alpha: 0.25
+  gamma: 2.0
+
+# 使用原始DEIMCriterion（无元数据）
+DEIMCriterion:
+  type: DEIMCriterion  # 注意：不是Meta版本
+  matcher: ${HungarianMatcher}
+  weight_dict: 
+    loss_vfl: 1.0
+    loss_bbox: 5.0
+    loss_giou: 2.0
+  losses: ['vfl', 'boxes']
+  alpha: 0.25
+  gamma: 2.0
+
+# 使用普通transforms（无元数据处理）
+train_transforms:
+  - type: Mosaic  # 普通Mosaic
+    prob: 1.0
+  - type: RandomHorizontalFlip
+    prob: 0.5
+  - type: SanitizeBoundingBoxes  # 普通SanitizeBoundingBoxes
+    min_size: 1
+
+# 使用普通MixUp
+train_collate_fn:
+  type: MixUp  # 普通MixUp
+  prob: 0.15
+
+output_dir: './outputs/codrone_baseline'
